@@ -28,12 +28,6 @@ pipeline {
                 sh "ansible-playbook -i hosts ansible-playbook.yml --private-key megha-key.pem"
         }
             }
-            }
-       post {
-            always{
-                 sh 'terraform destroy -auto-approve'
-               }
-        }
-        
+            }        
 }
 }
