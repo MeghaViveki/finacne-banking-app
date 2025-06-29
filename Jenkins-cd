@@ -29,7 +29,7 @@ pipeline {
                 playbook: 'ansible-playbook.yml',
                 inventory: 'hosts',
                 credentialsId: 'dep_cred',
-                extraVars: [ docker_image_tag:"${param.version}" ],
+                extraVars: [ docker_image_tag:"${version}" ],
                 colorized: true
             )
         }
