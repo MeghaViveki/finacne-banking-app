@@ -27,7 +27,7 @@ pipeline {
                script {
                 sh "sleep 120"
                 sh "chmod 400 megha-key.pem"
-                sh "ansible-playbook -i hosts ansible-playbook.yml -u ubuntu --private-key megha-key.pem"
+                sh "ansible-playbook -i hosts ansible-playbook.yml -u ubuntu --private-key megha-key.pem --extra-vars \"docker_image_tag=${version}\""
         }
             }
             }        
