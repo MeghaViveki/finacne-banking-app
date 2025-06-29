@@ -30,12 +30,9 @@ pipeline {
             }
             }
        post {
-            steps {
-            script{
+            always{
                  sh 'terraform destroy -auto-approve'
                }
-            }
-
         }
         
 }
