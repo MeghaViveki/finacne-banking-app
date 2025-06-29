@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'version', defaultValue: 'latest', description: 'Enter the version')
+    }
+
+    stages {
+        stage('clone') {
+            steps {
+                git branch: 'main', credentialsId: 'Megha', url: 'https://github.com/MeghaViveki/banking-finance-app.git'
+               
+            }
+
+        }
+        stage('infra deploy') {
+            steps {
+               script{
+                 sh 'terraform init'
+                 sh 'terraform plan'
+                 sh 'terraform apply -y'
+                 sh 'terraform output -raw public_IP > hosts'
+               }
+            }
+        }
+         stage('Infra configuration and container deploy') {
+            steps {
+               script {
+                ansiblePlaybook(
+                playbook: 'ansible-playbook.yml',
+                inventory: 'hosts',
+                credentialsId: 'dep_cred',
+                extraVars: [ docker_image_tag:${param.version} ],
+                colorized: true
+            )
+        }
+            }
+
+        }
+        
+    }
+}

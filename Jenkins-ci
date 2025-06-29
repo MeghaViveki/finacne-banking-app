@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+
+    stages {
+        stage('clone') {
+            steps {
+                git branch: 'main', credentialsId: 'Megha', url: 'https://github.com/MeghaViveki/banking-finance-app.git'
+               
+            }
+
+        }
+        stage('Build') {
+            steps {
+               script{
+                 sh '/opt/apache-maven-3.2.5/bin/mvn clean install'
+               }
+            }
+
+        }
+         stage('containerizing') {
+            steps {
+               script{
+                 sh 'docker build -t meghaviveki/financeme-backend .'
+               }
+            }
+
+        }
+        stage('pushing to dockerhub') {
+            steps {
+               script{
+                 sh "docker tag meghaviveki/financeme-backend:latest meghaviveki/financeme-backend:v${BUILD_NUMBER}"
+                 sh " echo ${env.docker_hub_pass} | docker login -u meghaviveki --password-stdin"
+                 sh "docker push meghaviveki/financeme-backend:v${BUILD_NUMBER}"
+               }
+            }
+
+        }
+    }
+}
