@@ -10,6 +10,9 @@ terraform {
 # Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
+  access_key = "AKIA2S2Y4QHFVCTDM4L3"
+  secret_key = "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"
+
 }
 resource "aws_instance" "meghavm" {
   ami           = "ami-0731becbf832f281e"
