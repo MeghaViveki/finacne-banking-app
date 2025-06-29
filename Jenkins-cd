@@ -18,7 +18,7 @@ pipeline {
                  sh 'terraform init'
                  sh 'terraform plan'
                  sh 'terraform apply -auto-approve'
-                 sh 'terraform output -raw public_IP > hosts'
+                 sh 'terraform output -raw private_IP > hosts'
                }
             }
         }
@@ -33,6 +33,16 @@ pipeline {
                 colorized: true
             )
         }
+            }
+            }
+        stage('Destroy') {
+            when {
+                expression { approvalStatus["ApprovalStatus"] == 'Approved' }
+            }
+            steps {
+            script{
+                 sh 'terraform destroy -auto-approve'
+               }
             }
 
         }

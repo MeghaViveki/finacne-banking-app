@@ -29,3 +29,6 @@ resource "aws_eip" "lb" {
 output "public_IP" {
   value = aws_eip.lb.public_ip
 }
+output "private_IP" {
+  value = aws_instance.meghavm.private_ip
+}
