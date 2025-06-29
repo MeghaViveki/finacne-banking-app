@@ -26,6 +26,11 @@ resource "aws_eip" "lb" {
   instance = aws_instance.meghavm.id
   domain   = "vpc"
 }
+resource "ansible_playbook" "playbook" {
+  playbook   = "ansible-playbook.yml"
+  name       = aws_instance.meghavm.private_ip
+  replayable = true
+}
 output "public_IP" {
   value = aws_eip.lb.public_ip
 }
