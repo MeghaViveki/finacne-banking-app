@@ -32,7 +32,7 @@ resource "aws_eip" "lb" {
 }
 resource "ansible_playbook" "playbook" {
   playbook   = "ansible-playbook.yml"
-  name       = aws_instance.meghavm.private_ip
+  name       = "${aws_instance.meghavm.private_ip}"
   replayable = true
 }
 output "public_IP" {
