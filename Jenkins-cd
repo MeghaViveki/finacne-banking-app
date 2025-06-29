@@ -29,10 +29,7 @@ pipeline {
         }
             }
             }
-        stage('Destroy') {
-            when {
-                expression { approvalStatus["ApprovalStatus"] == 'Approved' }
-            }
+       post {
             steps {
             script{
                  sh 'terraform destroy -auto-approve'
@@ -41,5 +38,4 @@ pipeline {
 
         }
         
-    }
 }
