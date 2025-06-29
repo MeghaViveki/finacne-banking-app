@@ -15,7 +15,7 @@ provider "aws" {
 
 }
 resource "aws_instance" "meghavm" {
-  ami           = "ami-0731becbf832f281e"
+  ami           = "ami-020cba7c55df1f615"
   instance_type = "t2.micro"
   subnet_id     = "subnet-07af1672b9c751ce8"
   key_name = "megha-key"
