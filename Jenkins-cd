@@ -25,6 +25,7 @@ pipeline {
          stage('Infra configuration and container deploy') {
             steps {
                script {
+                sleep 120
                 sh "chmod 400 megha-key.pem"
                 sh "ansible-playbook -i hosts ansible-playbook.yml --private-key megha-key.pem"
         }
