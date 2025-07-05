@@ -3,29 +3,33 @@ pipeline {
 
     parameters {
         string(name: 'version', defaultValue: 'latest', description: 'Enter the version')
-        // This allows the user to input a Docker image tag, defaulting to "latest".
+        // Allows the user to specify the Docker image tag (e.g., v1.0, latest).
     }
 
     stages {
         stage('clone') {
             steps {
-                // Cloning the GitHub repository from the 'main' branch using provided credentials.
+                // Cloning the GitHub repository from the 'main' branch using stored credentials.
                 git branch: 'main', credentialsId: 'Megha', url: 'https://github.com/MeghaViveki/finacne-banking-app.git'
-                // Suggestion: Check for repo access, consider using a deploy key or personal access token if needed.
+                // Suggestion: Ensure 'Megha' is a valid credential ID stored in Jenkins (GitHub PAT or SSH key).
             }
         }
 
         stage('infra deploy') {
             steps {
                 script {
-                    // Initializing, planning, and applying Terraform configuration to provision infrastructure.
-                    sh 'terraform init' // Initializes the Terraform working directory.
-                    sh 'terraform plan' // Shows the execution plan.
-                    sh 'terraform apply -auto-approve' // Applies the Terraform plan without manual approval.
-                    
-                    // Extracts the private IP output from Terraform and saves it to a file named 'hosts'.
+                    // Step 1: Initialize the Terraform configuration
+                    sh 'terraform init' 
+
+                    // Step 2: Preview infrastructure changes
+                    sh 'terraform plan'
+
+                    // Step 3: Apply the infrastructure changes automatically
+                    sh 'terraform apply -auto-approve'
+
+                    // Step 4: Capture the private IP output to a file for Ansible inventory use
                     sh 'terraform output -raw private_IP > hosts'
-                    // Suggestion: Consider using `terraform output -json` for more robust handling.
+                    // Suggestion: Ensure Terraform outputs 'private_IP' correctly defined in outputs.tf.
                 }
             }
         }
@@ -33,13 +37,23 @@ pipeline {
         stage('Infra configuration and container deploy') {
             steps {
                 script {
-                    // Using Ansible to configure the provisioned infrastructure and deploy a Docker container.
-                    sh "ansible-playbook -i hosts ansible-playbook.yml -u ubuntu --private-key megha-key.pem  --extra-vars \"docker_image_tag=${version}\""
-                    // Suggestion: Ensure the private key is securely stored (e.g., Jenkins credentials).
-                    // Also, verify that 'hosts' file format matches Ansible inventory expectations.
+                    // Wait for EC2 instance to fully initialize (e.g., SSH, cloud-init setup)
+                    sh "sleep 120"
+
+                    // Set proper permissions on the SSH private key file for Ansible
+                    sh "chmod 400 megha-key.pem"
+
+                    // Run Ansible playbook to configure the EC2 instance and deploy the Docker container
+                    sh """
+                        ansible-playbook -i hosts ansible-playbook.yml \
+                        -u ubuntu \
+                        --private-key megha-key.pem \
+                        --extra-vars "docker_image_tag=${version}"
+                    """
+                    // Suggestion: Ensure the 'hosts' file has a valid IP and reachable by Ansible over SSH.
+                    // Suggestion: Private key should be managed securely using Jenkins credentials and copied to workspace securely.
                 }
             }
         }
     }
 }
-
