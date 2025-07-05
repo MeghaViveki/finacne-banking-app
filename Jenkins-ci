@@ -1,40 +1,49 @@
 pipeline {
-    agent any
-
+    agent any // Runs the pipeline on any available Jenkins agent.
 
     stages {
         stage('clone') {
             steps {
+                // Cloning the main branch of the specified GitHub repository using stored credentials.
                 git branch: 'main', credentialsId: 'Megha', url: 'https://github.com/MeghaViveki/finacne-banking-app.git'
-               
+                // Suggestion: Ensure credentialsId 'Megha' is correctly configured in Jenkins credentials.
             }
-
         }
+
         stage('Build') {
             steps {
-               script{
-                 sh '/opt/apache-maven-3.2.5/bin/mvn clean install'
-               }
+                script {
+                    // Running Maven to clean and build the project.
+                    sh '/opt/apache-maven-3.2.5/bin/mvn clean install'
+                    // Suggestion: Consider using Jenkins tool configuration instead of a hardcoded Maven path.
+                }
             }
-
         }
-         stage('containerizing') {
+
+        stage('containerizing') {
             steps {
-               script{
-                 sh 'docker build -t meghaviveki/financeme-backend .'
-               }
+                script {
+                    // Building the Docker image with the tag 'meghaviveki/financeme-backend'.
+                    sh 'docker build -t meghaviveki/financeme-backend .'
+                    // Suggestion: You could also include a version tag during build for traceability.
+                }
             }
-
         }
+
         stage('pushing to dockerhub') {
             steps {
-               script{
-                 sh "docker tag meghaviveki/financeme-backend:latest meghaviveki/financeme-backend:v${BUILD_NUMBER}"
-                 sh " echo ${env.docker_hub_pass} | docker login -u meghaviveki --password-stdin"
-                 sh "docker push meghaviveki/financeme-backend:v${BUILD_NUMBER}"
-               }
-            }
+                script {
+                    // Tagging the built image with the current Jenkins build number for version control.
+                    sh "docker tag meghaviveki/financeme-backend:latest meghaviveki/financeme-backend:v${BUILD_NUMBER}"
 
+                    // Logging into DockerHub using credentials passed via environment variable.
+                    sh "echo ${env.docker_hub_pass} | docker login -u meghaviveki --password-stdin"
+                    // Suggestion: Use Jenkins credentials binding for secure password injection.
+
+                    // Pushing the versioned Docker image to DockerHub.
+                    sh "docker push meghaviveki/financeme-backend:v${BUILD_NUMBER}"
+                }
+            }
         }
     }
 }

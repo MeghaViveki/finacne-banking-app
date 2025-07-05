@@ -1,51 +1,45 @@
 pipeline {
-    agent any
+    agent any // This specifies that the pipeline can run on any available Jenkins agent.
+
     parameters {
         string(name: 'version', defaultValue: 'latest', description: 'Enter the version')
+        // This allows the user to input a Docker image tag, defaulting to "latest".
     }
 
     stages {
         stage('clone') {
             steps {
+                // Cloning the GitHub repository from the 'main' branch using provided credentials.
                 git branch: 'main', credentialsId: 'Megha', url: 'https://github.com/MeghaViveki/finacne-banking-app.git'
-               
+                // Suggestion: Check for repo access, consider using a deploy key or personal access token if needed.
             }
-
         }
+
         stage('infra deploy') {
             steps {
-               script{
-                 sh 'terraform init'
-                 sh 'terraform plan'
-                 sh 'terraform apply -auto-approve'
-                 sh 'terraform output -raw private_IP > hosts'
-               }
+                script {
+                    // Initializing, planning, and applying Terraform configuration to provision infrastructure.
+                    sh 'terraform init' // Initializes the Terraform working directory.
+                    sh 'terraform plan' // Shows the execution plan.
+                    sh 'terraform apply -auto-approve' // Applies the Terraform plan without manual approval.
+                    
+                    // Extracts the private IP output from Terraform and saves it to a file named 'hosts'.
+                    sh 'terraform output -raw private_IP > hosts'
+                    // Suggestion: Consider using `terraform output -json` for more robust handling.
+                }
             }
         }
-         stage('Infra configuration and container deploy') {
-            steps {
-               script {
-                ansiblePlaybook(
-                playbook: 'ansible-playbook.yml',
-                inventory: 'hosts',
-                credentialsId: 'dep_cred',
-                extraVars: [ docker_image_tag:"${version}" ],
-                colorized: true
-            )
-        }
-            }
-            }
-        stage('Destroy') {
-            when {
-                expression { approvalStatus["ApprovalStatus"] == 'Approved' }
-            }
-            steps {
-            script{
-                 sh 'terraform destroy -auto-approve'
-               }
-            }
 
+        stage('Infra configuration and container deploy') {
+            steps {
+                script {
+                    // Using Ansible to configure the provisioned infrastructure and deploy a Docker container.
+                    sh "ansible-playbook -i hosts ansible-playbook.yml -u ubuntu --private-key megha-key.pem  --extra-vars \"docker_image_tag=${version}\""
+                    // Suggestion: Ensure the private key is securely stored (e.g., Jenkins credentials).
+                    // Also, verify that 'hosts' file format matches Ansible inventory expectations.
+                }
+            }
         }
-        
     }
 }
+
